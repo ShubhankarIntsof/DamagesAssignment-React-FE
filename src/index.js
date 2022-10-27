@@ -1,13 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import 'bootstrap/dist/css/bootstrap.css';
+import Container from 'react-bootstrap/Container';
 import reportWebVitals from './reportWebVitals';
+import DamageCreate from './Components/DamageCreate';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <Container>
+      <DamageCreate />
+    </Container>
   </React.StrictMode>
 );
 
