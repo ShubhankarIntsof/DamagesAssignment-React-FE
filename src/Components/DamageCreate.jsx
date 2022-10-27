@@ -26,20 +26,30 @@ function DamageCreate(props) {
     const value = e.target.value;
     const name = e.target.name;
     const checked = e.target.checked;
+    const finalvalue = {
+      damageType: value,
+      damageEvidence: null,
+      specifyOthers: null,
+      isDeleted: 'false',
+    };
     console.log(value, checked, name);
 
     if (checked) {
-      setEArray([...evidencearray, value]);
+      setEArray([...evidencearray, finalvalue]);
     } else {
-      setEArray(evidencearray.filter((e) => e !== value));
+      setEArray(
+        evidencearray.filter(
+          (e) => e.damageType !== finalvalue.damageType
+        )
+      );
     }
-    console.log(evidencearray);
+    console.log(JSON.stringify(finalvalue));
   };
 
   return (
     <div>
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
-
+      {JSON.stringify(evidencearray)}
       <form
         style={{
           display: 'flex',
