@@ -4,13 +4,15 @@ import { Button } from 'react-bootstrap';
 function DamageCreate() {
   const [evidencedata, setEData] = useState([]);
   const [damageleveldata, setDamageData] = useState([]);
-  const [evidencearray, setEArray] = useState([]);
+  const [evidencearray, setEArray, getEArray] = useState([]);
   const [damageByValue, setDValue] = useState([]); //stores damage value temporarily
   const [damageBy, setDamageBy] = useState(); //using to set "Evidence of fire damage .."
   const [estimate, setEstimate] = useState();
   const [strDamage, setStrDamage] = useState();
   const [sidingDamage, setSidingDamage] = useState();
   const [roofMissing, setRoofMissing] = useState();
+  const [othersFlag, setOthersFlag] = useState(false);
+  const [others, setOthers] = useState(null);
 
   const URLEvd =
     'https://localhost:44302/api/Damages/GetLkpDamageType';
@@ -70,8 +72,21 @@ function DamageCreate() {
 
   const handleCreate = (e) => {
     console.log(' Create Clicked ');
+    var k = evidencearray;
+
     e.preventDefault();
     try {
+      if (others != null) {
+        console.log(' inside others != null ');
+        const finalvalue = {
+          damageType: 9, //hardcoded for others as special case
+          damageEvidence: null,
+          specifyOthers: others,
+          isDeleted: 'false',
+        };
+        k.push(finalvalue);
+        //setEArray([...evidencearray, finalvalue], () => {});
+      }
       fetch(URLCreate, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,12 +95,13 @@ function DamageCreate() {
           isStructuralDamage: strDamage,
           isSlidingDamage: sidingDamage,
           isRoofDamage: roofMissing,
-          shubhankarAssetInspectionEvidence: evidencearray,
+          shubhankarAssetInspectionEvidence: k,
         }),
       }).then((res) => {
         console.log(res.status);
         if (res.status == 200) {
           window.location.reload();
+          alert('Case Created'); //for development purpose
         } else {
           alert('Something went wrong');
         }
@@ -95,7 +111,9 @@ function DamageCreate() {
       alert(err);
     }
   };
-
+  const handleReset = (e) => {
+    window.location.reload();
+  };
   const handleSidingDamage = (e) => {
     console.log(' Siding Damage ' + e.target.value);
     setSidingDamage(e.target.value);
@@ -112,36 +130,46 @@ function DamageCreate() {
     console.log(' Structural Damage ' + e.target.value);
     setStrDamage(e.target.value);
   };
-  const handleCheck = (e) => {
+  const handleDamageByCheck = (e) => {
     const value = e.target.value;
     const name = e.target.name;
     const checked = e.target.checked;
-    const finalvalue = {
-      damageType: value,
-      damageEvidence: null,
-      specifyOthers: null,
-      isDeleted: 'false',
-    };
+    // const finalvalue = {
+    //   damageType: value,
+    //   damageEvidence: null,
+    //   specifyOthers: null,
+    //   isDeleted: 'false',
+    // };
     console.log(value, checked, name);
 
     if (checked == true) {
       //fetchDamageLevel(value);
-      fetchDamageLevel(e, name);
+
+      if (value == 9) {
+        //hardcoding for others section
+        setOthersFlag(true);
+      } else {
+        setOthersFlag(false);
+
+        fetchDamageLevel(e, name);
+      }
     } else {
-      damageleveldata.splice(0, damageleveldata.length);
+      setOthersFlag(false);
+      setOthers(null);
+      damageleveldata.splice(0, damageleveldata.length); //deleting the array when check is removed
       setDamageBy();
-      setEArray(
-        evidencearray.filter(
-          (e) => e.damageType !== finalvalue.damageType
-        )
-      );
+      setEArray(evidencearray.filter((e) => e.damageType !== value));
     }
   };
+  const handleOthers = (e) => {
+    setOthers(e.target.value);
+  };
 
-  const handleDamageLevel = (e) => {
-    console.log(e.target.value);
+  const handleDamageLevel = (e, i) => {
+    console.log(e);
+    console.log(i.damageLevel);
     //setDId(e.target.value);
-    var data = e.target.value;
+    var data = e;
     const finalvalue = {
       damageType: damageByValue,
       damageEvidence: data,
@@ -154,8 +182,9 @@ function DamageCreate() {
   return (
     <div style={{ marginBottom: '40px' }}>
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
-      {JSON.stringify(evidencearray)}
-      {/* {'Damagelevel' + JSON.stringify(damageleveldata)} */}
+      <div>{JSON.stringify(evidencearray)}</div>
+      <div>{others}</div>
+
       <form
         style={{
           display: 'flex',
@@ -252,12 +281,30 @@ function DamageCreate() {
               value={item.damageTypeId}
               name={item.damageValue}
               id={item.id}
-              onChange={handleCheck}
+              onChange={handleDamageByCheck}
             />
           </div>
         ))}
       </div>
       <hr />
+      {othersFlag == true && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <label>Specify Others * &nbsp;</label>
+          <input
+            className="form-control"
+            style={{ width: '250px', height: '30px' }}
+            type="text"
+            placeholder="Enter Estimate of Damages"
+            onChange={handleOthers}
+          />
+        </div>
+      )}
       <div>
         <h6>{damageBy}</h6>
         <form>
@@ -268,7 +315,9 @@ function DamageCreate() {
                 type="radio"
                 value={item.damageEvidenceId}
                 name="Evidence Level"
-                onChange={handleDamageLevel}
+                onChange={(e, i) =>
+                  handleDamageLevel(item.damageEvidenceId, item)
+                }
               />
             </div>
           ))}
@@ -282,6 +331,14 @@ function DamageCreate() {
         onClick={handleCreate}
       >
         Submit
+      </Button>
+      <Button
+        style={{ marginTop: '15px', marginLeft: '20px' }}
+        variant="warning"
+        type="submit"
+        onClick={handleReset}
+      >
+        Reset
       </Button>
     </div>
   );
