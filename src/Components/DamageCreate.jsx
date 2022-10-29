@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from 'react-bootstrap';
 
 function DamageCreate() {
   const [evidencedata, setEData] = useState([]);
   const [damageleveldata, setDamageData] = useState([]);
-  const [evidencearray, setEArray, getEArray] = useState([]);
+  const [evidencearray, setEArray] = useState([]);
   const [damageByValue, setDValue] = useState([]); //stores damage value temporarily
   const [damageBy, setDamageBy] = useState(); //using to set "Evidence of fire damage .."
   const [estimate, setEstimate] = useState();
@@ -13,6 +13,22 @@ function DamageCreate() {
   const [roofMissing, setRoofMissing] = useState();
   const [othersFlag, setOthersFlag] = useState(false);
   const [others, setOthers] = useState(null);
+  const [validatorFlags, setVFlag] = useState({
+    // estimateFlag: false,
+    // strucDmgFlag: false,
+    // sidingFlag: false,
+    // roofFlag: false,
+    // damagebyFlag: false,
+    // othersFlag: false,
+    // levelFlag: false,
+    estimateFlag: true,
+    strucDmgFlag: true,
+    sidingFlag: true,
+    roofFlag: true,
+    damagebyFlag: true,
+    othersFlag: true,
+    levelFlag: true,
+  });
 
   const URLEvd =
     'https://localhost:44302/api/Damages/GetLkpDamageType';
@@ -53,7 +69,6 @@ function DamageCreate() {
           console.log(n);
           setDValue(value);
           setDamageBy('Evidence of ' + n + ' Damage % *');
-          //transferForLevel = finalvalue;
         }
         console.log('Response DAMAGE LEVEL ' + r);
       });
@@ -166,8 +181,9 @@ function DamageCreate() {
   };
 
   const handleDamageLevel = (e, i) => {
+    //------------------------------------------------
     console.log(e);
-    console.log(i.damageLevel);
+    console.log('HIT ' + i.damageLevel);
     //setDId(e.target.value);
     var data = e;
     const finalvalue = {
@@ -202,6 +218,12 @@ function DamageCreate() {
           }}
         >
           <label>Estimate of Damges * &nbsp;</label>
+          {validatorFlags.estimateFlag && (
+            <label style={{ color: 'red' }}>
+              Please provide Estimate of Damages
+            </label>
+          )}
+
           <input
             className="form-control"
             style={{ width: '250px', height: '30px' }}
@@ -212,7 +234,14 @@ function DamageCreate() {
         </div>
 
         <div style={{ marginTop: '10px' }}>
-          <div>Structural Damage *</div>
+          <div>
+            Structural Damage *{' '}
+            {validatorFlags.strucDmgFlag && (
+              <label style={{ color: 'red' }}>
+                Please select either Yes or No
+              </label>
+            )}
+          </div>
           <input
             type="radio"
             value="Yes"
@@ -231,7 +260,19 @@ function DamageCreate() {
         </div>
 
         <div style={{ marginTop: '10px' }}>
-          <div>Siding Damage or Missing *</div>
+          <div>
+            Siding Damage or Missing *{' '}
+            {validatorFlags.sidingFlag && (
+              <label style={{ color: 'red' }}>
+                {' '}
+                {validatorFlags.strucDmgFlag && (
+                  <label style={{ color: 'red' }}>
+                    Please select either Yes or No
+                  </label>
+                )}
+              </label>
+            )}
+          </div>
           <input
             type="radio"
             value="Yes"
@@ -250,7 +291,14 @@ function DamageCreate() {
         </div>
 
         <div style={{ marginTop: '10px' }}>
-          <div>Roof Missing *</div>
+          <div>
+            Roof Missing *{' '}
+            {validatorFlags.roofFlag && (
+              <label style={{ color: 'red' }}>
+                Please select either Yes or No
+              </label>
+            )}
+          </div>
           <input
             type="radio"
             value="Yes"
@@ -271,7 +319,15 @@ function DamageCreate() {
       </form>
       <hr />
       <div>
-        <h6>Property Shows Damage By *</h6>
+        <div>
+          <h6>Property Shows Damage By * </h6>
+          {validatorFlags.damagebyFlag && (
+            <label style={{ color: 'red' }}>
+              Please select property shows damage type.
+            </label>
+          )}
+        </div>
+
         <div>{'  '} </div>
         {evidencedata.map((item, i) => (
           <div>
@@ -296,6 +352,11 @@ function DamageCreate() {
           }}
         >
           <label>Specify Others * &nbsp;</label>
+          {validatorFlags.othersFlag && (
+            <label style={{ color: 'red' }}>
+              Please specify Other.
+            </label>
+          )}
           <input
             className="form-control"
             style={{ width: '250px', height: '30px' }}
@@ -307,6 +368,11 @@ function DamageCreate() {
       )}
       <div>
         <h6>{damageBy}</h6>
+        {validatorFlags.levelFlag && damageBy != null && (
+          <label style={{ color: 'red' }}>
+            Please select percent Evidence of Flood/Water Damage.
+          </label>
+        )}
         <form>
           {damageleveldata.map((item, i) => (
             <div>
