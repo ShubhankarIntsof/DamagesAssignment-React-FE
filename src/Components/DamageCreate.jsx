@@ -13,22 +13,14 @@ function DamageCreate() {
   const [roofMissing, setRoofMissing] = useState();
   const [othersFlag, setOthersFlag] = useState(false);
   const [others, setOthers] = useState(null);
-  const [validatorFlags, setVFlag] = useState({
-    // estimateFlag: false,
-    // strucDmgFlag: false,
-    // sidingFlag: false,
-    // roofFlag: false,
-    // damagebyFlag: false,
-    // othersFlag: false,
-    // levelFlag: false,
-    estimateFlag: true,
-    strucDmgFlag: true,
-    sidingFlag: true,
-    roofFlag: true,
-    damagebyFlag: true,
-    othersFlag: true,
-    levelFlag: true,
-  });
+  //Flags
+  const [estimateFlag, setEstimateFlag] = useState(false);
+  const [strucDmgFlag, setstrDmgFlag] = useState(false);
+  const [sidingDmgFlag, setsidingDmgFlag] = useState(false);
+  const [roofDmgFlag, setroofDmgFlag] = useState(false);
+  const [damagebyFlag, setdamagebyFlag] = useState(false);
+  const [othersTxtFlag, setothersTxtFlag] = useState(false);
+  const [levelFlag, setlevelFlag] = useState(false);
 
   const URLEvd =
     'https://localhost:44302/api/Damages/GetLkpDamageType';
@@ -68,6 +60,7 @@ function DamageCreate() {
           console.log(k);
           console.log(n);
           setDValue(value);
+          setlevelFlag(true);
           setDamageBy('Evidence of ' + n + ' Damage % *');
         }
         console.log('Response DAMAGE LEVEL ' + r);
@@ -84,48 +77,74 @@ function DamageCreate() {
         //console.log('Response ' + r);
       });
   };
+  const validator = () => {
+    if (estimate == null || estimate == '') {
+      setEstimateFlag(true);
+      return false;
+    } else if (strDamage == null) {
+      setstrDmgFlag(true);
+      return false;
+    } else if (sidingDamage == null) {
+      setsidingDmgFlag(true);
+      return false;
+    } else if (roofMissing == null) {
+      setroofDmgFlag(true);
+      return false;
+    } else if (!evidencearray.length > 0 && othersFlag == false) {
+      setdamagebyFlag(true);
+      return false;
+    } else if (othersFlag == true && others == null) {
+      setothersTxtFlag(true);
+      return false;
+    } else {
+      return true;
+    }
+  };
 
   const handleCreate = (e) => {
     console.log(' Create Clicked ');
     var k = evidencearray;
+    if (validator()) {
+      e.preventDefault();
 
-    e.preventDefault();
-    try {
-      if (others != null) {
-        console.log(' inside others != null ');
-        const finalvalue = {
-          damageType: 9, //hardcoded for others as special case
-          damageEvidence: null,
-          specifyOthers: others,
-          isDeleted: 'false',
-        };
-        k.push(finalvalue);
-        //setEArray([...evidencearray, finalvalue], () => {});
-      }
-      fetch(URLCreate, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          estimateOfDamages: estimate,
-          isStructuralDamage: strDamage,
-          isSlidingDamage: sidingDamage,
-          isRoofDamage: roofMissing,
-          shubhankarAssetInspectionEvidence: k,
-        }),
-      }).then((res) => {
-        console.log(res.status);
-        if (res.status == 200) {
-          window.location.reload();
-          alert('Case Created'); //for development purpose
-        } else {
-          alert('Something went wrong');
+      try {
+        if (others != null) {
+          console.log(' inside others != null ');
+          const finalvalue = {
+            damageType: 9, //hardcoded for others as special case
+            damageEvidence: null,
+            specifyOthers: others,
+            isDeleted: 'false',
+          };
+          k.push(finalvalue);
+          //setEArray([...evidencearray, finalvalue], () => {});
         }
-      });
-    } catch (err) {
-      console.log('ERRR' + err);
-      alert(err);
+        fetch(URLCreate, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            estimateOfDamages: estimate,
+            isStructuralDamage: strDamage,
+            isSlidingDamage: sidingDamage,
+            isRoofDamage: roofMissing,
+            shubhankarAssetInspectionEvidence: k,
+          }),
+        }).then((res) => {
+          console.log(res.status);
+          if (res.status == 200) {
+            window.location.reload();
+            alert('Case Created'); //for development purpose
+          } else {
+            alert('Something went wrong');
+          }
+        });
+      } catch (err) {
+        console.log('ERRR' + err);
+        alert(err);
+      }
     }
   };
+
   const handleReset = (e) => {
     window.location.reload();
   };
@@ -192,6 +211,8 @@ function DamageCreate() {
       specifyOthers: null,
       isDeleted: 'false',
     };
+    setlevelFlag(true);
+    setlevelFlag();
     setEArray([...evidencearray, finalvalue]);
   };
 
@@ -218,7 +239,7 @@ function DamageCreate() {
           }}
         >
           <label>Estimate of Damges * &nbsp;</label>
-          {validatorFlags.estimateFlag && (
+          {estimateFlag && (
             <label style={{ color: 'red' }}>
               Please provide Estimate of Damages
             </label>
@@ -236,7 +257,7 @@ function DamageCreate() {
         <div style={{ marginTop: '10px' }}>
           <div>
             Structural Damage *{' '}
-            {validatorFlags.strucDmgFlag && (
+            {strucDmgFlag && (
               <label style={{ color: 'red' }}>
                 Please select either Yes or No
               </label>
@@ -262,14 +283,9 @@ function DamageCreate() {
         <div style={{ marginTop: '10px' }}>
           <div>
             Siding Damage or Missing *{' '}
-            {validatorFlags.sidingFlag && (
+            {sidingDmgFlag && (
               <label style={{ color: 'red' }}>
-                {' '}
-                {validatorFlags.strucDmgFlag && (
-                  <label style={{ color: 'red' }}>
-                    Please select either Yes or No
-                  </label>
-                )}
+                Please select either Yes or No
               </label>
             )}
           </div>
@@ -293,7 +309,7 @@ function DamageCreate() {
         <div style={{ marginTop: '10px' }}>
           <div>
             Roof Missing *{' '}
-            {validatorFlags.roofFlag && (
+            {roofDmgFlag && (
               <label style={{ color: 'red' }}>
                 Please select either Yes or No
               </label>
@@ -321,7 +337,7 @@ function DamageCreate() {
       <div>
         <div>
           <h6>Property Shows Damage By * </h6>
-          {validatorFlags.damagebyFlag && (
+          {damagebyFlag && (
             <label style={{ color: 'red' }}>
               Please select property shows damage type.
             </label>
@@ -352,7 +368,7 @@ function DamageCreate() {
           }}
         >
           <label>Specify Others * &nbsp;</label>
-          {validatorFlags.othersFlag && (
+          {othersTxtFlag && (
             <label style={{ color: 'red' }}>
               Please specify Other.
             </label>
@@ -368,7 +384,7 @@ function DamageCreate() {
       )}
       <div>
         <h6>{damageBy}</h6>
-        {validatorFlags.levelFlag && damageBy != null && (
+        {levelFlag && damageBy != null && (
           <label style={{ color: 'red' }}>
             Please select percent Evidence of Flood/Water Damage.
           </label>
