@@ -13,6 +13,7 @@ function DamageCreate() {
   const [roofMissing, setRoofMissing] = useState();
   const [othersFlag, setOthersFlag] = useState(false);
   const [others, setOthers] = useState(null);
+  const [templeveldata, settempleveldata] = useState(null);
   //Flags
   const [estimateFlag, setEstimateFlag] = useState(false);
   const [strucDmgFlag, setstrDmgFlag] = useState(false);
@@ -21,6 +22,9 @@ function DamageCreate() {
   const [damagebyFlag, setdamagebyFlag] = useState(false);
   const [othersTxtFlag, setothersTxtFlag] = useState(false);
   const [levelFlag, setlevelFlag] = useState(false);
+  const [NoneFlag, setNoneFlag] = useState(false);
+  const [disableFlag, setDisableFlag] = useState(false);
+  const [levelFillFlag, setlevelFillFlag] = useState(false);
 
   const URLEvd =
     'https://localhost:44302/api/Damages/GetLkpDamageType';
@@ -78,7 +82,7 @@ function DamageCreate() {
       });
   };
   const validator = () => {
-    if (estimate == null || estimate == '') {
+    if ((estimate == null || estimate == '') && NoneFlag == false) {
       setEstimateFlag(true);
       return false;
     } else if (strDamage == null) {
@@ -90,12 +94,17 @@ function DamageCreate() {
     } else if (roofMissing == null) {
       setroofDmgFlag(true);
       return false;
-    } else if (!evidencearray.length > 0 && othersFlag == false) {
+    } else if (
+      !evidencearray.length > 0 &&
+      othersFlag == false &&
+      levelFlag == false
+    ) {
       setdamagebyFlag(true);
       return false;
     } else if (othersFlag == true && others == null) {
       setothersTxtFlag(true);
       return false;
+    } else if (levelFlag == false) {
     } else {
       return true;
     }
@@ -118,6 +127,8 @@ function DamageCreate() {
           };
           k.push(finalvalue);
           //setEArray([...evidencearray, finalvalue], () => {});
+        } else if (levelFlag == true) {
+          k.push(templeveldata);
         }
         fetch(URLCreate, {
           method: 'POST',
@@ -168,26 +179,29 @@ function DamageCreate() {
     const value = e.target.value;
     const name = e.target.name;
     const checked = e.target.checked;
-    // const finalvalue = {
-    //   damageType: value,
-    //   damageEvidence: null,
-    //   specifyOthers: null,
-    //   isDeleted: 'false',
-    // };
+
     console.log(value, checked, name);
 
     if (checked == true) {
       //fetchDamageLevel(value);
 
-      if (value == 9) {
+      if (name == 'Other') {
         //hardcoding for others section
         setOthersFlag(true);
+      } else if (name == 'None') {
+        setNoneFlag(true);
+        setDisableFlag(true);
+        fetchDamageLevel(e, name);
+        //evidencearray.splice(0, evidencearray.length);
       } else {
         setOthersFlag(false);
-
         fetchDamageLevel(e, name);
       }
     } else {
+      if (name == 'None') {
+        setNoneFlag(false);
+        setDisableFlag(false);
+      }
       setOthersFlag(false);
       setOthers(null);
       damageleveldata.splice(0, damageleveldata.length); //deleting the array when check is removed
@@ -201,6 +215,7 @@ function DamageCreate() {
 
   const handleDamageLevel = (e, i) => {
     //------------------------------------------------
+
     console.log(e);
     console.log('HIT ' + i.damageLevel);
     //setDId(e.target.value);
@@ -212,15 +227,16 @@ function DamageCreate() {
       isDeleted: 'false',
     };
     setlevelFlag(true);
-    setlevelFlag();
-    setEArray([...evidencearray, finalvalue]);
+    settempleveldata(finalvalue);
+
+    //setEArray([...evidencearray, finalvalue]);
   };
 
   return (
     <div style={{ marginBottom: '40px' }}>
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
       <div>{JSON.stringify(evidencearray)}</div>
-      <div>{others}</div>
+      <div>{JSON.stringify(templeveldata)}</div>
 
       <form
         style={{
@@ -350,6 +366,7 @@ function DamageCreate() {
             {item.damageValue} &nbsp;
             <input
               type="checkbox"
+              disabled={item.damageValue != 'None' && disableFlag}
               value={item.damageTypeId}
               name={item.damageValue}
               id={item.id}
@@ -384,11 +401,12 @@ function DamageCreate() {
       )}
       <div>
         <h6>{damageBy}</h6>
-        {levelFlag && damageBy != null && (
-          <label style={{ color: 'red' }}>
-            Please select percent Evidence of Flood/Water Damage.
-          </label>
-        )}
+        {levelFlag == false ||
+          (templeveldata == null && (
+            <label style={{ color: 'red' }}>
+              Please select percent Evidence of Flood/Water Damage.
+            </label>
+          ))}
         <form>
           {damageleveldata.map((item, i) => (
             <div>
