@@ -4,7 +4,7 @@ import { Button } from 'react-bootstrap';
 function DamageCreate() {
   const [evidencedata, setEData] = useState([]);
   const [damageleveldata, setDamageData] = useState([]);
-  const [evidencearray, setEArray] = useState([]);
+  const [evidencearray, setEArray] = useState([]); //stores user selected checkboxes
   const [damageByValue, setDValue] = useState([]); //stores damage value temporarily
   const [damageBy, setDamageBy] = useState(); //using to set "Evidence of fire damage .."
   const [estimate, setEstimate] = useState();
@@ -53,6 +53,7 @@ function DamageCreate() {
           console.log(k);
           console.log('setting in array');
           setDamageBy();
+
           const finalvalue = {
             damageType: value,
             damageEvidence: null,
@@ -101,10 +102,14 @@ function DamageCreate() {
     ) {
       setdamagebyFlag(true);
       return false;
+    } else if (levelFlag && templeveldata == null) {
+      setlevelFillFlag(true);
+      return false;
     } else if (othersFlag == true && others == null) {
       setothersTxtFlag(true);
       return false;
-    } else if (levelFlag == false) {
+    } else if (evidencearray.length > 0) {
+      return true;
     } else {
       return true;
     }
@@ -112,6 +117,8 @@ function DamageCreate() {
 
   const handleCreate = (e) => {
     console.log(' Create Clicked ');
+    // k = validator();
+    // console.log(k.toString());
     var k = evidencearray;
     if (validator()) {
       e.preventDefault();
@@ -191,6 +198,7 @@ function DamageCreate() {
       } else if (name == 'None') {
         setNoneFlag(true);
         setDisableFlag(true);
+
         fetchDamageLevel(e, name);
         //evidencearray.splice(0, evidencearray.length);
       } else {
@@ -201,6 +209,11 @@ function DamageCreate() {
       if (name == 'None') {
         setNoneFlag(false);
         setDisableFlag(false);
+      }
+      if (levelFillFlag && levelFlag) {
+        settempleveldata(null);
+        setlevelFillFlag(false);
+        setlevelFlag(false);
       }
       setOthersFlag(false);
       setOthers(null);
@@ -214,8 +227,6 @@ function DamageCreate() {
   };
 
   const handleDamageLevel = (e, i) => {
-    //------------------------------------------------
-
     console.log(e);
     console.log('HIT ' + i.damageLevel);
     //setDId(e.target.value);
@@ -226,7 +237,7 @@ function DamageCreate() {
       specifyOthers: null,
       isDeleted: 'false',
     };
-    setlevelFlag(true);
+    setlevelFillFlag(true);
     settempleveldata(finalvalue);
 
     //setEArray([...evidencearray, finalvalue]);
@@ -350,21 +361,35 @@ function DamageCreate() {
         <hr />
       </form>
       <hr />
-      <div>
-        <div>
-          <h6>Property Shows Damage By * </h6>
-          {damagebyFlag && (
-            <label style={{ color: 'red' }}>
-              Please select property shows damage type.
-            </label>
-          )}
-        </div>
-
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}
+      >
+        <h6>Property Shows Damage By * </h6>
+        {damagebyFlag && (
+          <label style={{ color: 'red' }}>
+            &nbsp;Please select property shows damage type.&nbsp;
+          </label>
+        )}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>{'  '} </div>
         {evidencedata.map((item, i) => (
           <div>
             {item.damageValue} &nbsp;
             <input
+              style={{
+                marginRight: '35px',
+              }}
               type="checkbox"
               disabled={item.damageValue != 'None' && disableFlag}
               value={item.damageTypeId}
@@ -372,6 +397,7 @@ function DamageCreate() {
               id={item.id}
               onChange={handleDamageByCheck}
             />
+            &nbsp;
           </div>
         ))}
       </div>
@@ -402,7 +428,7 @@ function DamageCreate() {
       <div>
         <h6>{damageBy}</h6>
         {levelFlag == false ||
-          (templeveldata == null && (
+          (levelFillFlag && templeveldata == null && (
             <label style={{ color: 'red' }}>
               Please select percent Evidence of Flood/Water Damage.
             </label>
