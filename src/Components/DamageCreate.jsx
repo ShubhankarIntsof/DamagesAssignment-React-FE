@@ -14,6 +14,7 @@ function DamageCreate() {
   const [othersFlag, setOthersFlag] = useState(false);
   const [others, setOthers] = useState(null);
   const [templeveldata, settempleveldata] = useState(null);
+  const [templeveldata2, settempleveldata2] = useState({});
   //Flags
   const [estimateFlag, setEstimateFlag] = useState(false);
   const [strucDmgFlag, setstrDmgFlag] = useState(false);
@@ -30,7 +31,7 @@ function DamageCreate() {
     'https://localhost:44302/api/Damages/GetLkpDamageType';
 
   const URLDamageLevel =
-    'https://localhost:44302/api/Damages/GetDamageEvidence/'; //also a lookup table
+    'https://localhost:44302/api/Damages/GetDamageEvidence/'; // a lookup table
 
   const URLCreate =
     'https://localhost:44302/api/Damages/PostMainData';
@@ -64,6 +65,7 @@ function DamageCreate() {
         } else {
           console.log(k);
           console.log(n);
+
           setDValue(value);
           setlevelFlag(true);
           setDamageBy('Evidence of ' + n + ' Damage % *');
@@ -117,8 +119,7 @@ function DamageCreate() {
 
   const handleCreate = (e) => {
     console.log(' Create Clicked ');
-    // k = validator();
-    // console.log(k.toString());
+
     var k = evidencearray;
     if (validator()) {
       e.preventDefault();
@@ -134,8 +135,13 @@ function DamageCreate() {
           };
           k.push(finalvalue);
           //setEArray([...evidencearray, finalvalue], () => {});
-        } else if (levelFlag == true) {
-          k.push(templeveldata);
+        } else if (
+          Object.keys(templeveldata2).length > 0 ||
+          levelFlag == true
+        ) {
+          //k.push(templeveldata);------------
+          console.log('TEMP TABLE');
+          Object.values(templeveldata2).forEach((val) => k.push(val));
         }
         fetch(URLCreate, {
           method: 'POST',
@@ -153,6 +159,7 @@ function DamageCreate() {
             window.location.reload();
             alert('Case Created'); //for development purpose
           } else {
+            console.log(JSON.stringify(res));
             alert('Something went wrong');
           }
         });
@@ -190,15 +197,12 @@ function DamageCreate() {
     console.log(value, checked, name);
 
     if (checked == true) {
-      //fetchDamageLevel(value);
-
       if (name == 'Other') {
         //hardcoding for others section
         setOthersFlag(true);
       } else if (name == 'None') {
         setNoneFlag(true);
         setDisableFlag(true);
-
         fetchDamageLevel(e, name);
         //evidencearray.splice(0, evidencearray.length);
       } else {
@@ -206,11 +210,22 @@ function DamageCreate() {
         fetchDamageLevel(e, name);
       }
     } else {
+      // when the checkbox get unchecked
       if (name == 'None') {
         setNoneFlag(false);
         setDisableFlag(false);
       }
-      if (levelFillFlag && levelFlag) {
+      if (
+        Object.keys(templeveldata2).length != 0 ||
+        (levelFillFlag && levelFlag)
+      ) {
+        console.log('Level to be deleted' + e.target.value);
+        var k = e.target.value;
+        settempleveldata2((current) => {
+          const copy = { ...current };
+          delete copy[k];
+          return copy;
+        });
         settempleveldata(null);
         setlevelFillFlag(false);
         setlevelFlag(false);
@@ -239,6 +254,10 @@ function DamageCreate() {
     };
     setlevelFillFlag(true);
     settempleveldata(finalvalue);
+    settempleveldata2((prevState) => ({
+      ...prevState,
+      [damageByValue]: finalvalue,
+    }));
 
     //setEArray([...evidencearray, finalvalue]);
   };
@@ -248,6 +267,7 @@ function DamageCreate() {
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
       <div>{JSON.stringify(evidencearray)}</div>
       <div>{JSON.stringify(templeveldata)}</div>
+      <div>{JSON.stringify(templeveldata2)}</div>
 
       <form
         style={{
