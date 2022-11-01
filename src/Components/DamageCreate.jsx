@@ -104,7 +104,7 @@ function DamageCreate() {
     ) {
       setdamagebyFlag(true);
       return false;
-    } else if (levelFlag && templeveldata == null) {
+    } else if (levelFlag && Object.keys(templeveldata2).length == 0) {
       setlevelFillFlag(true);
       return false;
     } else if (othersFlag == true && others == null) {
@@ -204,7 +204,6 @@ function DamageCreate() {
         setNoneFlag(true);
         setDisableFlag(true);
         fetchDamageLevel(e, name);
-        //evidencearray.splice(0, evidencearray.length);
       } else {
         setOthersFlag(false);
         fetchDamageLevel(e, name);
@@ -266,7 +265,7 @@ function DamageCreate() {
     <div style={{ marginBottom: '40px' }}>
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
       <div>{JSON.stringify(evidencearray)}</div>
-      <div>{JSON.stringify(templeveldata)}</div>
+      {/* <div>{JSON.stringify(templeveldata)}</div> */}
       <div>{JSON.stringify(templeveldata2)}</div>
 
       <form
@@ -461,7 +460,7 @@ function DamageCreate() {
                 type="radio"
                 value={item.damageEvidenceId}
                 name="Evidence Level"
-                onChange={(e, i) =>
+                onChange={() =>
                   handleDamageLevel(item.damageEvidenceId, item)
                 }
               />
