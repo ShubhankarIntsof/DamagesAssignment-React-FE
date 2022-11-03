@@ -70,8 +70,6 @@ function DamageCreate() {
           console.log(n);
 
           setDValue(value);
-          setradioFlag(false);
-
           setlevelFlag(true);
           setlevelFillFlag(false);
           setDamageBy('Evidence of ' + n + ' Damage % *');
@@ -105,8 +103,7 @@ function DamageCreate() {
       return false;
     } else if (
       evidencearray.length == 0 &&
-      damageleveldata.length == 0 &&
-      !othersFlag
+      others == false
       //|| (Object.keys(templeveldata2).length == 0 && others == false)
     ) {
       setdamagebyFlag(true);
@@ -124,6 +121,7 @@ function DamageCreate() {
       return true;
     }
   };
+
   const handleCreate = (e) => {
     console.log(' Create Clicked ');
 
@@ -206,14 +204,12 @@ function DamageCreate() {
 
     if (checked == true) {
       setlevelFlag(true);
-
       if (name == 'Other') {
         //hardcoding for others section
         setlevelFlag(false);
         setOthersFlag(true);
       } else if (name == 'None') {
         setNoneFlag(true);
-
         setDisableFlag(true);
         fetchDamageLevel(e, name);
       } else {
@@ -241,7 +237,6 @@ function DamageCreate() {
         settempleveldata(null);
         setlevelFillFlag(false);
       }
-      setradioFlag(false);
       setOthersFlag(false);
       setOthers(null);
       damageleveldata.splice(0, damageleveldata.length); //deleting the array when check is removed
@@ -278,12 +273,12 @@ function DamageCreate() {
   return (
     <div style={{ marginBottom: '40px' }}>
       <h3 style={{ marginTop: '40px' }}>New Damage Case</h3>
-      {/* 
-      <div>{JSON.stringify(evidencearray)}</div>
-      <div>{JSON.stringify(templeveldata)}</div>
+
+      {/* <div>{JSON.stringify(evidencearray)}</div> */}
+      {/* <div>{JSON.stringify(templeveldata)}</div> */}
       <div>{JSON.stringify(templeveldata2)}</div>
       <div>level Flag: {String(levelFlag)}</div>
-      <div>level fill Flag: {String(levelFillFlag)}</div> */}
+      <div>level fill Flag: {String(levelFillFlag)}</div>
 
       <form
         style={{
