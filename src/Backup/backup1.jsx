@@ -1,32 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from 'react-bootstrap';
 
 function DamageCreate() {
-  const [evidencedata, setEData] = useState([]); // stores checkbox options from api
-  const [damageleveldata, setDamageData] = useState([]); // stores values of radio buttons for each checkbox
-  const [evidencearray, setEArray] = useState([]); //stores user selected checkboxes having no additional radio button
-  const [damageByValue, setDValue] = useState([]); //stores the values of checkboxes having child like fire has radio btn
-  const [damageBy, setDamageBy] = useState(); //using to set "Evidence of fire/flood damage .."
-  const [estimate, setEstimate] = useState(); // stores value for estimate text box
+  const [evidencedata, setEData] = useState([]);
+  const [damageleveldata, setDamageData] = useState([]);
+  const [evidencearray, setEArray] = useState([]); //stores user selected checkboxes
+  const [damageByValue, setDValue] = useState([]); //stores damage value temporarily
+  const [damageBy, setDamageBy] = useState(); //using to set "Evidence of fire damage .."
+  const [estimate, setEstimate] = useState();
   const [strDamage, setStrDamage] = useState();
   const [sidingDamage, setSidingDamage] = useState();
   const [roofMissing, setRoofMissing] = useState();
-  const [othersFlag, setOthersFlag] = useState(false); //using for checking if others checkbox is clicked
-  const [others, setOthers] = useState(null); //stores value of others textbox
-  const [templeveldata, settempleveldata] = useState(null); //stores single radio button selection  --d
-  const [templeveldata2, settempleveldata2] = useState({}); //stores multiple radio selection without duplicates
+  const [othersFlag, setOthersFlag] = useState(false);
+  const [others, setOthers] = useState(null);
+  const [templeveldata, settempleveldata] = useState(null);
+  const [templeveldata2, settempleveldata2] = useState({});
   //Flags
   const [estimateFlag, setEstimateFlag] = useState(false);
   const [strucDmgFlag, setstrDmgFlag] = useState(false);
   const [sidingDmgFlag, setsidingDmgFlag] = useState(false);
   const [roofDmgFlag, setroofDmgFlag] = useState(false);
-  const [damagebyFlag, setdamagebyFlag] = useState(false); // flag for checkbox validation step 1
-  const [othersTxtFlag, setothersTxtFlag] = useState(false); //using to check if others textbox is filled or not
+  const [damagebyFlag, setdamagebyFlag] = useState(false);
+  const [othersTxtFlag, setothersTxtFlag] = useState(false);
   const [levelFlag, setlevelFlag] = useState(false);
   const [NoneFlag, setNoneFlag] = useState(false);
   const [disableFlag, setDisableFlag] = useState(false);
   const [levelFillFlag, setlevelFillFlag] = useState(false);
-  const [radioFlag, setradioFlag] = useState(false);
 
   const URLEvd =
     'https://localhost:44302/api/Damages/GetLkpDamageType';
@@ -52,10 +51,8 @@ function DamageCreate() {
         const value = e.target.value;
 
         if (k == 0) {
-          // checks if the options is empty for a damage reason
           console.log(k);
           console.log('setting in array');
-          setlevelFlag(false);
           setDamageBy();
 
           const finalvalue = {
@@ -71,7 +68,6 @@ function DamageCreate() {
 
           setDValue(value);
           setlevelFlag(true);
-          setlevelFillFlag(false);
           setDamageBy('Evidence of ' + n + ' Damage % *');
         }
         console.log('Response DAMAGE LEVEL ' + r);
@@ -102,16 +98,14 @@ function DamageCreate() {
       setroofDmgFlag(true);
       return false;
     } else if (
-      evidencearray.length == 0 &&
-      Object.keys(templeveldata2).length == 0 &&
-      others == false
+      !evidencearray.length > 0 &&
+      othersFlag == false &&
+      levelFlag == false
     ) {
       setdamagebyFlag(true);
-
       return false;
-    } else if (levelFlag && !levelFillFlag) {
-      //setlevelFillFlag(true);
-      setradioFlag(true);
+    } else if (levelFlag && Object.keys(templeveldata2).length == 0) {
+      setlevelFillFlag(true);
       return false;
     } else if (othersFlag == true && others == null) {
       setothersTxtFlag(true);
@@ -141,8 +135,7 @@ function DamageCreate() {
           };
           k.push(finalvalue);
           //setEArray([...evidencearray, finalvalue], () => {});
-        }
-        if (
+        } else if (
           Object.keys(templeveldata2).length > 0 ||
           levelFlag == true
         ) {
@@ -204,10 +197,8 @@ function DamageCreate() {
     console.log(value, checked, name);
 
     if (checked == true) {
-      setlevelFlag(true);
       if (name == 'Other') {
         //hardcoding for others section
-        setlevelFlag(false);
         setOthersFlag(true);
       } else if (name == 'None') {
         setNoneFlag(true);
@@ -219,7 +210,6 @@ function DamageCreate() {
       }
     } else {
       // when the checkbox get unchecked
-      setlevelFlag(false);
       if (name == 'None') {
         setNoneFlag(false);
         setDisableFlag(false);
@@ -237,6 +227,7 @@ function DamageCreate() {
         });
         settempleveldata(null);
         setlevelFillFlag(false);
+        setlevelFlag(false);
       }
       setOthersFlag(false);
       setOthers(null);
@@ -260,7 +251,6 @@ function DamageCreate() {
       specifyOthers: null,
       isDeleted: 'false',
     };
-    setlevelFlag(false);
     setlevelFillFlag(true);
     settempleveldata(finalvalue);
     settempleveldata2((prevState) => ({
@@ -277,8 +267,6 @@ function DamageCreate() {
       <div>{JSON.stringify(evidencearray)}</div>
       {/* <div>{JSON.stringify(templeveldata)}</div> */}
       <div>{JSON.stringify(templeveldata2)}</div>
-      <div>level Flag: {String(levelFlag)}</div>
-      <div>level fill Flag: {String(levelFillFlag)}</div>
 
       <form
         style={{
@@ -458,11 +446,12 @@ function DamageCreate() {
       )}
       <div>
         <h6>{damageBy}</h6>
-        {radioFlag && (
-          <label style={{ color: 'red' }}>
-            Please select percent Evidence of Flood/Water Damage.
-          </label>
-        )}
+        {levelFlag == false ||
+          (levelFillFlag && templeveldata == null && (
+            <label style={{ color: 'red' }}>
+              Please select percent Evidence of Flood/Water Damage.
+            </label>
+          ))}
         <form>
           {damageleveldata.map((item, i) => (
             <div>
